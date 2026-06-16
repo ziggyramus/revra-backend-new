@@ -137,7 +137,14 @@ app.post('/jobs/create-test', async (req, res) => {
   }
 });
 
+app.get('/test', (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: 'REVRA Backend Live'
+  });
+});
+
 app.listen(PORT, () => {
-  console.log("REVRA BACKEND V2 DEPLOY TEST");
+  console.log('REVRA BACKEND V2 DEPLOY TEST');
   console.log(`Server running on port ${PORT}`);
 });
