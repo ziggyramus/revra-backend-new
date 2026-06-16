@@ -89,17 +89,21 @@ Boolean(process.env.PAYSTACK_SECRET_KEY)
 );
 
 // Routes
-app.use("/api/paystack", paystackRoutes);
+app.use('/api/paystack', paystackRoutes);
 
-// app.use("/users", userRoutes); // uncomment if you have this file
-// app.use("/auth", authRoutes); // uncomment if you have this file
+app.get('/test', (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: 'REVRA Backend Live'
+  });
+});
 
 // 404 handler
 app.use((req: Request, res: Response) => {
-res.status(404).json({
-status: false,
-error: `Route not found: ${req.method} ${req.originalUrl}`,
-});
+  res.status(404).json({
+    status: false,
+    error: `Route not found: ${req.method} ${req.originalUrl}`,
+  });
 });
 
 // Global error handler
