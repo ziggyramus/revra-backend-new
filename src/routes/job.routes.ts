@@ -1,40 +1,67 @@
-import express from 'express';
-import axios from 'axios';
+import { Router, Request, Response } from "express";
 
-const router = express.Router();
+const router = Router();
 
-router.post('/create', async (req, res) => {
-try {
-const { amount } = req.body;
+const jobs: any[] = [];
 
-const response = await axios.post(
-'https://api.paystack.co/transaction/initialize',
-{
-email: 'test@email.com',
-amount: amount * 100, // Paystack uses kobo
-},
-{
-headers: {
-Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-'Content-Type': 'application/json',
-},
-}
-);
+router.post("/", async (req: Request, res: Response) => {
+  const job = {
+    id: crypto.randomUUID(),
+    ...req.body,
+    status: req.body.status || "pending",
+    paymentStatus: req.body.paymentStatus || "pending",
+    createdAt: new Date().toISOString(),
+  };
 
-const data = response.data.data;
+  jobs.push(job);
 
-res.json({
-success: true,
-authorization_url: data.authorization_url,
-reference: data.reference,
+  return res.status(201).json({
+    success: true,
+    data: job,
+  });
 });
 
-} catch (error: any) {
-res.status(500).json({
-success: false,
-error: error.response?.data || error.message,
+router.get("/", async (_req: Request, res: Response) => {
+  return res.json({
+    success: true,
+    data: jobs,
+  });
 });
-}
+
+router.get("/:id", async (req: Request, res: Response) => {
+  const job = jobs.find((j) => j.id === req.params.id);
+
+  if (!job) {
+    return res.status(404).json({
+      success: false,
+      error: "Job not found",
+    });
+  }
+
+  return res.json({
+    success: true,
+    data: job,
+  });
+});
+
+router.patch("/:id", async (req: Request, res: Response) => {
+  const job = jobs.find((j) => j.id === req.params.id);
+
+  if (!job) {
+    return res.status(404).json({
+      success: false,
+      error: "Job not found",
+    });
+  }
+
+  Object.assign(job, req.body, {
+    updatedAt: new Date().toISOString(),
+  });
+
+  return res.json({
+    success: true,
+    data: job,
+  });
 });
 
 export default router;

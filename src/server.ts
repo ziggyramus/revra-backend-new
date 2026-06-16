@@ -5,6 +5,7 @@ import investigationRoutes from './routes/investigation.routes';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import jobRoutes from "./routes/job.routes";
 
 import paystackRoutes from "./routes/paystack.routes";
 // import userRoutes from "./routes/user.routes"; // uncomment if you have this file
@@ -90,6 +91,7 @@ Boolean(process.env.PAYSTACK_SECRET_KEY)
 
 // Routes
 app.use('/api/paystack', paystackRoutes);
+app.use("/api/jobs", jobRoutes);
 
 app.get('/test', (req, res) => {
   return res.status(200).json({
