@@ -16,7 +16,7 @@ export const createJob = (amount: number) => {
   const job = {
 id: Date.now().toString(),
 amount,
-status: 'pending',
+status: 'pending' as const,
 
 // 🔥 ADD REAL DATA
 title: "Service Request", // replace later from frontend

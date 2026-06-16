@@ -29,7 +29,7 @@ authorization_url: data.authorization_url,
 reference: data.reference,
 });
 
-} catch (error) {
+} catch (error: any) {
 res.status(500).json({
 success: false,
 error: error.response?.data || error.message,
