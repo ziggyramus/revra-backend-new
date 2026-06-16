@@ -138,5 +138,6 @@ app.post('/jobs/create-test', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-console.log(`Server running on port ${PORT}`);
+  console.log("REVRA BACKEND V2 DEPLOY TEST");
+  console.log(`Server running on port ${PORT}`);
 });
