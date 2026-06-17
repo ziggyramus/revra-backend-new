@@ -59,6 +59,15 @@ const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim())
   : [];
 
+  const isBase44Origin = (origin: string): boolean => {
+  try {
+    const url = new URL(origin);
+    return url.protocol === "https:" && url.hostname.endsWith(".base44.app");
+  } catch {
+    return false;
+  }
+};
+
 app.use(
   cors({
     origin(origin, callback) {
@@ -70,9 +79,9 @@ app.use(
         return callback(null, true);
       }
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+      if (allowedOrigins.includes(origin) || isBase44Origin(origin)) {
+  return callback(null, true);
+}
 
       return callback(new Error(`CORS blocked origin: ${origin}`));
     },
