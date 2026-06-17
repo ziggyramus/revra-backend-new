@@ -14,6 +14,7 @@ import rateLimit from "express-rate-limit";
 import investigationRoutes from "./routes/investigation.routes";
 import jobRoutes from "./routes/job.routes";
 import paystackRoutes from "./routes/paystack.routes";
+import userRoutes from "./routes/user.routes";
 
 dotenv.config();
 
@@ -115,6 +116,7 @@ app.get("/test", (_req: Request, res: Response) => {
 app.use("/api/investigations", investigationRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/paystack", paystackRoutes);
+app.use("/api/users", userRoutes);
 
 app.use((req: Request, res: Response) => {
   return res.status(404).json({
