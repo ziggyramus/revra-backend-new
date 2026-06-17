@@ -1,67 +1,80 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
+import {
+  createJob,
+  getJobs,
+  getJobById,
+  updateJobById,
+} from "../services/job.service";
 
 const router = Router();
 
-const jobs: any[] = [];
+router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const job = await createJob(req.body);
 
-router.post("/", async (req: Request, res: Response) => {
-  const job = {
-    id: crypto.randomUUID(),
-    ...req.body,
-    status: req.body.status || "pending",
-    paymentStatus: req.body.paymentStatus || "pending",
-    createdAt: new Date().toISOString(),
-  };
-
-  jobs.push(job);
-
-  return res.status(201).json({
-    success: true,
-    data: job,
-  });
-});
-
-router.get("/", async (_req: Request, res: Response) => {
-  return res.json({
-    success: true,
-    data: jobs,
-  });
-});
-
-router.get("/:id", async (req: Request, res: Response) => {
-  const job = jobs.find((j) => j.id === req.params.id);
-
-  if (!job) {
-    return res.status(404).json({
-      success: false,
-      error: "Job not found",
+    return res.status(201).json({
+      success: true,
+      message: "Job created successfully",
+      data: job,
     });
+  } catch (error) {
+    return next(error);
   }
-
-  return res.json({
-    success: true,
-    data: job,
-  });
 });
 
-router.patch("/:id", async (req: Request, res: Response) => {
-  const job = jobs.find((j) => j.id === req.params.id);
+router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const jobs = await getJobs();
 
-  if (!job) {
-    return res.status(404).json({
-      success: false,
-      error: "Job not found",
+    return res.status(200).json({
+      success: true,
+      count: jobs.length,
+      data: jobs,
     });
+  } catch (error) {
+    return next(error);
   }
+});
 
-  Object.assign(job, req.body, {
-    updatedAt: new Date().toISOString(),
-  });
+router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const job = await getJobById(req.params.id);
 
-  return res.json({
-    success: true,
-    data: job,
-  });
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        error: "Job not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: job,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.patch("/:id", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const job = await updateJobById(req.params.id, req.body);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        error: "Job not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Job updated successfully",
+      data: job,
+    });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 export default router;

@@ -1,72 +1,103 @@
-type Job = {
-id: string;
-amount: number;
-status: 'pending' | 'paid';
-reference?: string;
+import Job from "../models/job.model";
 
-// 🔥 ADD THESE
-title?: string;
-customerName?: string;
-customerEmail?: string;
+type JobStatus = "pending" | "paid" | "cancelled";
+type PaymentStatus = "pending" | "paid" | "failed";
+
+type CreateJobInput = {
+  title?: string;
+  amount: number;
+  customerName?: string;
+  customerEmail?: string;
+  status?: JobStatus;
+  paymentStatus?: PaymentStatus;
+  reference?: string;
 };
 
-const jobs: Job[] = [];
+type UpdateJobInput = Partial<CreateJobInput>;
 
-export const createJob = (amount: number) => {
-  const job = {
-id: Date.now().toString(),
-amount,
-status: 'pending' as const,
+export const createJob = async (input: CreateJobInput | number) => {
+  const payload =
+    typeof input === "number"
+      ? {
+          amount: input,
+          title: "Service Request",
+          customerName: "Test User",
+          customerEmail: "test@email.com",
+        }
+      : input;
 
-// 🔥 ADD REAL DATA
-title: "Service Request", // replace later from frontend
-customerName: "Test User",
-customerEmail: "test@email.com"
-};
-  jobs.push(job);
+  const job = await Job.create({
+    title: payload.title || "Service Request",
+    amount: payload.amount,
+    customerName: payload.customerName,
+    customerEmail: payload.customerEmail,
+    status: payload.status || "pending",
+    paymentStatus: payload.paymentStatus || "pending",
+    reference: payload.reference,
+  });
+
   return job;
 };
 
-export const updateJobPayment = (reference: string, amount: number) => {
-const job = jobs.find(
-(j) =>
-j.reference === reference ||
-(j.amount === amount && j.status === "pending")
-);
-
-if (!job) {
-return {
-job: null,
-payment: null,
-allPayments: [],
-totalPaid: 0,
-balance: 0,
-aggregatePaymentStatus: "pending"
-};
-}
-
-// ✅ UPDATE JOB (this is what was missing before)
-job.status = "paid";
-job.reference = reference;
-
-const normalizedJob = {
-id: job.id,
-title: job.title || "Service Request",
-customerName: job.customerName || "",
-customerEmail: job.customerEmail || "",
-status: job.status,
-amount: Number(job.amount || 0),
-reference: job.reference
+export const getJobs = async () => {
+  return Job.find().sort({ createdAt: -1 });
 };
 
-return {
-job: normalizedJob,
-payment: null,
-allPayments: [],
-totalPaid: normalizedJob.amount,
-balance: 0,
-aggregatePaymentStatus: "paid"
-};
+export const getJobById = async (id: string) => {
+  return Job.findById(id);
 };
 
-export const getJobs = () => jobs;
+export const updateJobById = async (id: string, input: UpdateJobInput) => {
+  return Job.findByIdAndUpdate(id, input, {
+    new: true,
+    runValidators: true,
+  });
+};
+
+export const updateJobPaymentById = async (
+  jobId: string,
+  reference: string,
+  amount: number
+) => {
+  const job = await Job.findByIdAndUpdate(
+    jobId,
+    {
+      status: "paid",
+      paymentStatus: "paid",
+      reference,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  if (!job) {
+    return {
+      job: null,
+      payment: null,
+      allPayments: [],
+      totalPaid: 0,
+      balance: amount,
+      aggregatePaymentStatus: "pending",
+    };
+  }
+
+  return {
+    job: {
+      id: job.id,
+      title: job.title,
+      customerName: job.customerName || "",
+      customerEmail: job.customerEmail || "",
+      status: job.status,
+      paymentStatus: job.paymentStatus,
+      amount: Number(job.amount || 0),
+      reference: job.reference,
+    },
+    payment: null,
+    allPayments: [],
+    totalPaid: Number(job.amount || 0),
+    balance: 0,
+    aggregatePaymentStatus: "paid",
+  };
+};
