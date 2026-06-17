@@ -1,112 +1,146 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from "express";
 import {
-createInvestigation,
-getInvestigationById,
-getInvestigationsByOrgId,
-listInvestigations,
-updateInvestigation,
-deleteInvestigation,
-} from '../services/investigation.service';
+  createInvestigation,
+  getInvestigationById,
+  listInvestigations,
+  updateInvestigation,
+  deleteInvestigation,
+} from "../services/investigation.service";
 
-export const create = (req: Request, res: Response): void => {
+export const create = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const data = req.body;
 
-    // Validate required fields
     if (!data.organizationId || !data.title || !data.type) {
-      res.status(400).json({ error: 'Missing required fields: organizationId, title, type' });
+      res.status(400).json({
+        success: false,
+        error: "Missing required fields: organizationId, title, type",
+      });
       return;
     }
 
-    const investigation = createInvestigation(data);
-    res.status(201).json(investigation);
+    const investigation = await createInvestigation(data);
 
-  } catch (error: any) {
-res.status(500).json({
-error: error.message || 'Internal server error',
-});
+    res.status(201).json({
+      success: true,
+      message: "Investigation created successfully",
+      data: investigation,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
-export const getById = (req: Request, res: Response): void => {
+export const getById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const { id } = req.params;
-    const investigation = getInvestigationById(id as string);
+    const investigation = await getInvestigationById(req.params.id);
 
     if (!investigation) {
-      res.status(404).json({ error: 'Investigation not found' });
+      res.status(404).json({
+        success: false,
+        error: "Investigation not found",
+      });
       return;
     }
 
-    res.json(investigation);
-  } catch (error: any) {
-res.status(500).json({
-error: error.message || 'Internal server error',
-});
+    res.status(200).json({
+      success: true,
+      data: investigation,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
-export const list = (req: Request, res: Response): void => {
+export const list = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { organizationId, status, priority, page = 1, limit = 100 } = req.query;
 
     if (!organizationId) {
-      res.status(400).json({ error: 'organizationId is required' });
+      res.status(400).json({
+        success: false,
+        error: "organizationId is required",
+      });
       return;
     }
 
-    const filters = {
+    const investigations = await listInvestigations({
       organizationId: organizationId as string,
-      ...(status && { status: status as string }),
-      ...(priority && { priority: priority as string }),
+      status: status as string | undefined,
+      priority: priority as string | undefined,
       page: Number(page),
       limit: Number(limit),
-    };
+    });
 
-    const investigations = listInvestigations(filters);
-    res.json(investigations);
-  } catch (error: any) {
-res.status(500).json({
-error: error.message || 'Internal server error',
-});
+    res.status(200).json({
+      success: true,
+      count: investigations.length,
+      data: investigations,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
-export const update = (req: Request, res: Response): void => {
+export const update = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const { id } = req.params;
-    const data = req.body;
-
-    const investigation = updateInvestigation(id as string, data);
+    const investigation = await updateInvestigation(req.params.id, req.body);
 
     if (!investigation) {
-      res.status(404).json({ error: 'Investigation not found' });
+      res.status(404).json({
+        success: false,
+        error: "Investigation not found",
+      });
       return;
     }
 
-    res.json(investigation);
-  } catch (error: any) {
-res.status(500).json({
-error: error.message || 'Internal server error',
-});
+    res.status(200).json({
+      success: true,
+      message: "Investigation updated successfully",
+      data: investigation,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
-export const remove = (req: Request, res: Response): void => {
+export const remove = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const { id } = req.params;
-
-    const deleted = deleteInvestigation(id as string);
+    const deleted = await deleteInvestigation(req.params.id);
 
     if (!deleted) {
-      res.status(404).json({ error: 'Investigation not found' });
+      res.status(404).json({
+        success: false,
+        error: "Investigation not found",
+      });
       return;
     }
 
-    res.json({ success: true, message: 'Investigation deleted' });
-  } catch (error: any) {
-res.status(500).json({
-error: error.message || 'Internal server error',
-});
+    res.status(200).json({
+      success: true,
+      message: "Investigation deleted successfully",
+    });
+  } catch (error) {
+    next(error);
   }
 };
