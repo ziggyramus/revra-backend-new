@@ -1,9 +1,12 @@
 import express, {
   Request,
   Response,
-  NextFunction,
-  ErrorRequestHandler,
-} from "express";
+  } from "express";
+import {
+  notFoundHandler,
+  errorHandler,
+} from "./middleware/error.middleware";
+
 import cors from "cors";
 import dotenv from "dotenv";
 import helmet from "helmet";
@@ -118,31 +121,7 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/paystack", paystackRoutes);
 app.use("/api/users", userRoutes);
 
-app.use((req: Request, res: Response) => {
-  return res.status(404).json({
-    status: false,
-    error: "Route not found",
-    method: req.method,
-    path: req.originalUrl,
-  });
-});
-
-const errorHandler: ErrorRequestHandler = (
-  err: unknown,
-  _req: Request,
-  res: Response,
-  _next: NextFunction
-) => {
-  console.error("GLOBAL SERVER ERROR:", err);
-
-  const message = err instanceof Error ? err.message : "Internal server error";
-
-  return res.status(500).json({
-    status: false,
-    error: NODE_ENV === "production" ? "Internal server error" : message,
-  });
-};
-
+app.use(notFoundHandler);
 app.use(errorHandler);
 
 const connectDatabase = async (): Promise<void> => {
