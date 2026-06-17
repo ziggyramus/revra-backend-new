@@ -116,14 +116,6 @@ app.use("/api/investigations", investigationRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/paystack", paystackRoutes);
 
-app.post("/api/jobs/create-test", (req: Request, res: Response) => {
-  return res.status(200).json({
-    success: true,
-    message: "create-test route reached",
-    data: req.body,
-  });
-});
-
 app.use((req: Request, res: Response) => {
   return res.status(404).json({
     status: false,
